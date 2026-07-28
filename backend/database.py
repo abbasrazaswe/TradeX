@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # --------------------------------------------------------
-# UPDATE THIS LINE WITH YOUR OWN DATABASE PASSWORD
+# Local PostgreSQL connection for this project
 # Format: postgresql://username:password@localhost/db_name
 # --------------------------------------------------------
 SQLALCHEMY_DATABASE_URL = "postgresql://postgres:post001@localhost/stock_app_db"
