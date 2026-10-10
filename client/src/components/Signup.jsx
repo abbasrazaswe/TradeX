@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
+import api from '../api';
 import Logo from './Logo';
 
 function Signup() {
@@ -51,12 +50,16 @@ function Signup() {
       return;
     }
 
+    
     try {
-      const response = await axios.post('http://localhost:8000/users/', {
+      const response = await api.post('/users/', {
         username: username.trim(),
         email: email.trim(),
         password: password
       });
+
+  // Keep your existing response handling here
+
 
       if (response.data && response.data.id) {
         // Redirect to login page instead of auto-login
