@@ -15,7 +15,7 @@ app = FastAPI()
 # --- THIS BLOCK IS REQUIRED TO FIX NETWORK ERROR ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"], # Allows React/Vite to connect
+    allow_origins=["http://localhost:3000", "http://localhost:5173", "https://trade-x-beta-plum.vercel.app"], # Allows React/Vite to connect
     allow_credentials=True,
     allow_methods=["*"], # Allows all methods (GET, POST, etc.)
     allow_headers=["*"],
