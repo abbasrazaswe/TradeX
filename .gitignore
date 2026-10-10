@@ -65,4 +65,5 @@ logs/
 package-lock.json
 yarn.lock
 
+db-credentials.md
 # End of .gitignore
