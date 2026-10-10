@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
+import api from '../api';
 import Logo from './Logo';
 
 function Login() {
@@ -16,12 +15,18 @@ function Login() {
     e.preventDefault();
     setError('');
     setLoading(true);
+    
 
-    try {
-      const response = await axios.post('http://localhost:8000/login', {
-        username: email,
-        password: password
-      });
+  const data = {
+    username: email,
+    password: password
+  };
+
+  try {
+    const response = await api.post('/login', data);
+    // Keep your existing response handling here
+
+      
 
       if (response.data && response.data.user_id) {
         localStorage.setItem('userId', response.data.user_id);
