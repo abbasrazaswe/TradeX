@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 
 function TradingModal({ ticker, marketPrices, cashAvailable, portfolio, onClose, onTradeSuccess }) {
   const [selectedTicker, setSelectedTicker] = useState(ticker || '');
@@ -40,7 +40,7 @@ function TradingModal({ ticker, marketPrices, cashAvailable, portfolio, onClose,
     const qty = tradeType === 'BUY' ? parseInt(quantity) : -parseInt(quantity);
 
     try {
-      const response = await axios.post('http://localhost:8000/trade', {
+      const response = await api.post('/trade', {
         user_id: userId,
         ticker: selectedTicker,
         quantity: qty

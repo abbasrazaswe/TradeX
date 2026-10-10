@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import Logo from './Logo';
@@ -37,13 +37,13 @@ function Dashboard() {
   const fetchAllData = async () => {
     try {
       const [summaryRes, portfolioRes, riskRes, historyRes, allocRes, sectorsRes, marketRes] = await Promise.all([
-        axios.get(`http://localhost:8000/portfolio/${userId}/summary`),
-        axios.get(`http://localhost:8000/portfolio/${userId}`),
-        axios.get(`http://localhost:8000/portfolio/${userId}/risk-metrics`),
-        axios.get(`http://localhost:8000/trades/${userId}/history?limit=5`),
-        axios.get(`http://localhost:8000/portfolio/${userId}/allocation`),
-        axios.get(`http://localhost:8000/portfolio/${userId}/sectors`),
-        axios.get(`http://localhost:8000/market/prices`)
+        api.get(`/portfolio/${userId}/summary`),
+        api.get(`/portfolio/${userId}`),
+        api.get(`/portfolio/${userId}/risk-metrics`),
+        api.get(`/trades/${userId}/history?limit=5`),
+        api.get(`/portfolio/${userId}/allocation`),
+        api.get(`/portfolio/${userId}/sectors`),
+        api.get(`/market/prices`)
       ]);
 
       setSummary(summaryRes.data);
