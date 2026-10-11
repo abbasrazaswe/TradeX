@@ -21,6 +21,9 @@ class UserResponse(UserBase):
     class Config:
         from_attributes = True
 
+class GoogleAuthRequest(BaseModel):
+    access_token: str
+
 class LoginResponse(BaseModel):
     user_id: int
     username: str

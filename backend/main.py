@@ -3,7 +3,12 @@ from sqlalchemy.orm import Session
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
+import json
+import os
 import random
+import re
+import urllib.error
+import urllib.request
 
 import models, schemas, database
 
@@ -50,6 +55,62 @@ def login(credentials: schemas.UserLogin, db: Session = Depends(get_db)):
         "username": user.username,
         "message": "Login successful"
     }
+
+# --- 1b. GOOGLE SIGN-IN (Supabase Auth) ---
+def _fetch_supabase_user(access_token: str) -> dict:
+    """Ask Supabase Auth to validate the access token and return its user."""
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_ANON_KEY")
+    if not supabase_url or not supabase_key:
+        raise HTTPException(status_code=503, detail="Google sign-in is not configured on the server")
+
+    request = urllib.request.Request(
+        f"{supabase_url.rstrip('/')}/auth/v1/user",
+        headers={"Authorization": f"Bearer {access_token}", "apikey": supabase_key},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:
+            return json.load(response)
+    except urllib.error.HTTPError:
+        raise HTTPException(status_code=401, detail="Invalid or expired Google session")
+    except (urllib.error.URLError, TimeoutError):
+        raise HTTPException(status_code=502, detail="Could not reach the authentication service")
+
+
+def _unique_username(db: Session, base: str) -> str:
+    base = re.sub(r"[^a-zA-Z0-9_.-]", "", base)[:30] or "trader"
+    candidate, suffix = base, 1
+    while db.query(models.User).filter(models.User.username == candidate).first():
+        suffix += 1
+        candidate = f"{base}{suffix}"
+    return candidate
+
+
+@app.post("/auth/google", response_model=schemas.LoginResponse)
+def google_auth(payload: schemas.GoogleAuthRequest, db: Session = Depends(get_db)):
+    supabase_user = _fetch_supabase_user(payload.access_token)
+
+    providers = (supabase_user.get("app_metadata") or {}).get("providers") or []
+    email = (supabase_user.get("email") or "").strip().lower()
+    if "google" not in providers or not email or not supabase_user.get("email_confirmed_at"):
+        raise HTTPException(status_code=401, detail="Google account email could not be verified")
+
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        metadata = supabase_user.get("user_metadata") or {}
+        display_name = metadata.get("full_name") or metadata.get("name") or email.split("@")[0]
+        # No password is stored, so this account can only be opened via Google.
+        user = models.User(
+            username=_unique_username(db, display_name.replace(" ", "")),
+            email=email,
+            hashed_password=None,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    return {"user_id": user.id, "username": user.username, "message": "Login successful"}
+
 
 # --- 2. SIGN UP (Create User) ---
 @app.post("/users/", response_model=schemas.UserResponse)
